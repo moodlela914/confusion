@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 時代的認知陷阱體驗 - 學生版三階挑戰</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 html2canvas 用於將證書直接轉為 PNG 圖檔下載 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        /* 自定義滾動條 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* 震動動畫 */
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-4px, -2px) rotate(-1deg); }
+            20%, 40%, 60%, 80% { transform: translate(4px, 2px) rotate(1deg); }
+        }
+        .shake-animation {
+            animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        /* 誘餌按鈕呼吸脈衝背景 */
+        @keyframes pulse-indigo {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+        .btn-bait-pulse { animation: pulse-indigo 2s infinite; }
+
+        /* 證書發光與純 CSS 紙質紋理（避免跨域圖片汙染 Canvas 導致無法下載） */
+        .cert-glow {
+            box-shadow: 0 0 35px rgba(251, 191, 36, 0.35), inset 0 0 25px rgba(251, 191, 36, 0.18);
+            border: 3px solid #fbbf24;
+            background-color: #fffdf9;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px), radial-gradient(#f3f4f6 1px, #fffdf9 1px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+
+        /* 淡入動畫 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.45s ease-out forwards; }
+
+        @media print {
+            @page { size: A4 landscape; margin: 0; }
+            body { background-color: white !important; margin: 0; padding: 0; }
+            body * { visibility: hidden; }
+            #view-cert, #view-cert * { visibility: visible; }
+            #view-cert { 
+                position: absolute; 
+                left: 0; top: 0; 
+                width: 100vw; height: 100vh;
+                background-color: white !important; 
+                display: flex !important;
+                align-items: center; justify-content: center;
+                padding: 0;
+            }
+            .cert-glow { box-shadow: none !important; width: 95%; max-width: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body id="main-body" class="text-gray-800 antialiased min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8">
+
+    <!-- 主容器 -->
+    <main class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative" style="min-h: 82vh;">
+        
+        <!-- 音效開關按鈕 (右上角浮動) -->
+        <button id="sound-toggle-btn" onclick="toggleSound()" class="no-print absolute top-4 right-4 z-30 bg-white/80 hover:bg-white text-gray-700 px-3 py-1.5 rounded-full text-xs font-bold shadow border border-gray-200 flex items-center gap-1.5 transition" title="切換音效">
+            <span id="sound-icon">🔊</span>
+            <span id="sound-text" class="hidden sm:inline">音效開啟</span>
+        </button>
+
+        <!-- ================= VIEW 1: 遊戲入口 (學生版) ================= -->
+        <section id="view-intro" class="p-6 sm:p-12 md:p-16 flex-col items-center justify-center flex-grow animate-fade-in" style="display: flex;">
+            <div class="inline-flex items-center justify-center p-5 bg-indigo-100 rounded-full mb-5 shadow-inner">
+                <svg class="w-14 h-14 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+            </div>
+
+            <div class="inline-block px-3 py-1 bg-amber-100 text-amber-800 font-bold text-xs sm:text-sm rounded-full mb-3 tracking-wide">
+                🕵️‍♂️ 中小學生資訊素養 × 思維防禦挑戰
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-5 tracking-tight text-center leading-tight">
+                AI 認知陷阱：三階壓力測試
+            </h1>
+            
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed text-center">
+                距離交作業跟爸媽回家只剩 <strong class="text-red-500 font-bold">30 秒</strong>！你請 AI 幫忙解決生活與學業難題。<br>
+                系統每次將從 <span class="font-bold text-indigo-600">6 大生活情境隨機抽出 3 關</span>，請從黃色反白處<strong class="text-indigo-600 underline">抓出 AI 幻象並退回</strong>，拒絕把大腦外包！
+            </p>
+
+            <!-- 6大題庫標籤預覽 -->
+            <div class="flex flex-wrap justify-center gap-2 mb-8 max-w-xl">
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">🧪 居家清潔安全</span>
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">🍳 微波爐料理危機</span>
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">🩹 校園運動急救</span>
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">📱 社群人際與法律</span>
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">📚 歷史作業查核</span>
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">🎮 遊戲資安防詐</span>
+            </div>
+
+            <!-- 姓名輸入區 (無 alert 設計，使用內嵌提示) -->
+            <div class="w-full max-w-sm mb-6">
+                <label for="player-name" class="block text-center text-sm font-bold text-gray-600 mb-2">
+                    請輸入你的「班級與姓名」以核發通關證書：
+                </label>
+                <input type="text" id="player-name" placeholder="例如：701 王小明" 
+                    onkeydown="if(event.key === 'Enter') startGame()"
+                    oninput="hideNameError()"
+                    class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none text-center text-xl font-bold text-gray-800 transition shadow-inner">
+                <p id="name-error-msg" class="text-red-600 bg-red-50 border border-red-200 rounded-lg py-2 px-3 text-center text-sm font-bold mt-2 hidden">
+                    ⚠️ 請先輸入你的姓名或暱稱，才能為你製作專屬認證證書喔！
+                </p>
+            </div>
+
+            <button onclick="startGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 px-12 rounded-xl shadow-[0_10px_20px_rgba(79,70,229,0.3)] transition transform hover:-translate-y-1 active:translate-y-0 text-xl w-full sm:w-auto cursor-pointer">
+                🎲 隨機抽題・開始挑戰
+            </button>
+        </section>
+
+        <!-- ================= VIEW 2: 審閱 AI 攻略 (主動態區) ================= -->
+        <section id="view-task" class="bg-gray-50 flex-col h-full flex-grow" style="display: none;">
+            <!-- 頂部儀表板 -->
+            <div class="bg-indigo-900 text-white p-4 lg:px-8 flex justify-between items-center shadow-md z-20 sticky top-0">
+                <div class="flex items-center space-x-3 sm:space-x-4">
+                    <div class="flex space-x-1.5">
+                        <div id="dot-1" class="w-3.5 h-3.5 rounded-full bg-gray-500 transition-colors"></div>
+                        <div id="dot-2" class="w-3.5 h-3.5 rounded-full bg-gray-500 transition-colors"></div>
+                        <div id="dot-3" class="w-3.5 h-3.5 rounded-full bg-gray-500 transition-colors"></div>
+                    </div>
+                    <span id="level-indicator" class="font-bold tracking-wider text-xs sm:text-base bg-indigo-800 px-3 py-1 rounded-md border border-indigo-700">
+                        關卡 1 / 3
+                    </span>
+                </div>
+                <div class="flex items-center bg-black/40 px-3.5 py-1.5 rounded-lg border border-indigo-700 mr-10 sm:mr-16">
+                    <svg class="w-5 h-5 mr-1.5 text-red-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span id="timer-display" class="text-xl sm:text-2xl font-mono font-bold text-red-400">30</span>
+                    <span class="text-xs text-red-300 ml-1">秒</span>
+                </div>
+            </div>
+
+            <!-- 操作提示 -->
+            <div class="bg-yellow-50 border-b border-yellow-200 p-3 text-center text-xs sm:text-base font-bold text-yellow-900 shadow-sm z-10">
+                ⚠️ 任務：點擊下方文章中的<span class="bg-yellow-200 px-1.5 py-0.5 mx-1 rounded border border-yellow-400">黃色反白選項</span>選出真正的致命錯誤，再按下「<span class="text-indigo-700">🚫 抓出AI幻象並退回</span>」！
+            </div>
+
+            <!-- 動態內容區 -->
+            <div id="dynamic-content-area" class="p-5 sm:p-8 md:p-10 overflow-y-auto animate-fade-in" style="flex-grow: 1;">
+                <!-- 內容由 JS 動態注入 -->
+            </div>
+
+            <!-- 底部決策按鈕 -->
+            <div class="p-4 sm:p-6 bg-white border-t border-gray-200 flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0 sticky bottom-0 z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
+                <div class="flex items-center text-xs sm:text-sm text-gray-600 bg-gray-100 px-3.5 py-1.5 rounded-full border border-gray-200">
+                    <svg class="w-4 h-4 mr-1.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    AI 自信指數：<span id="ai-confidence" class="font-black ml-1 text-gray-800">98%</span>
+                    <span class="ml-2 text-xs text-gray-400">（看起來超合理？）</span>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <!-- 拒絕按鈕 (通關防線 - 依需求改為「🚫 抓出AI幻象並退回」) -->
+                    <button onclick="handleDecision(false)" class="flex-1 md:flex-none px-6 py-3.5 border-2 border-indigo-400 text-indigo-700 font-black rounded-xl hover:bg-indigo-50 transition active:scale-95 cursor-pointer text-base">
+                        🚫 抓出AI幻象並退回
+                    </button>
+                    <!-- 誘騙點擊的主要按鈕 (絕對失敗) -->
+                    <button onclick="handleDecision(true)" class="flex-1 md:flex-none px-7 py-3.5 bg-indigo-600 text-white font-black rounded-xl shadow-lg hover:bg-indigo-700 transition btn-bait-pulse active:scale-95 cursor-pointer text-base">
+                        ✅ 太神啦！直接照做
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 3: 失敗燈箱 (當頭棒喝 - 滿屏通紅) ================= -->
+        <section id="view-fail" class="bg-red-600 flex-col items-center justify-center p-5 sm:p-8 text-white flex-grow" style="display: none;">
+            <div class="bg-red-900/45 p-6 sm:p-10 rounded-3xl border-4 border-red-300 max-w-2xl w-full text-center shadow-2xl animate-fade-in">
+                <!-- 認知外包警示標籤 -->
+                <div class="mb-5 inline-block px-5 py-2 bg-yellow-400 text-red-950 font-black rounded-full tracking-widest text-xs sm:text-base animate-pulse shadow-lg">
+                    🚨 認知外包警報 (Cognitive Offloading Error)
+                </div>
+                
+                <h1 class="text-3xl sm:text-5xl font-black mb-4 tracking-wider drop-shadow-md">大腦當機啦！</h1>
+                <h2 id="fail-subtitle" class="text-lg sm:text-2xl font-bold mb-6 text-yellow-100 drop-shadow">判定理由...</h2>
+                
+                <div class="bg-black/50 p-5 sm:p-6 rounded-xl text-left text-sm sm:text-base border-l-4 border-yellow-400 mb-8 shadow-inner">
+                    <p class="font-bold text-yellow-300 mb-2 text-base sm:text-lg">⚠️ 真正的 AI 幻象與危機是：</p>
+                    <p id="fail-desc" class="leading-relaxed text-gray-100">錯誤描述...</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="retryLevel()" class="bg-white text-red-700 font-black py-3.5 px-10 rounded-xl shadow-xl hover:bg-gray-100 transition transform hover:scale-105 active:scale-95 cursor-pointer">
+                        🔄 重新挑戰本關
+                    </button>
+                    <button onclick="resetGame()" class="bg-transparent border-2 border-white/60 text-white font-bold py-3.5 px-8 rounded-xl hover:bg-white/20 transition cursor-pointer">
+                        放棄並回首頁
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 4: 成功燈箱 (批判思考) ================= -->
+        <section id="view-pass" class="bg-emerald-600 flex-col items-center justify-center p-5 sm:p-8 text-white flex-grow" style="display: none;">
+            <div class="bg-white/10 p-6 sm:p-10 rounded-3xl border-2 border-white/30 max-w-2xl w-full text-center shadow-2xl animate-fade-in">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-5 text-emerald-600 shadow-lg">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black mb-3 drop-shadow-md">成功識破 AI 幻象！</h1>
+                <p class="text-base sm:text-xl font-medium mb-6 text-emerald-100">你的大腦非常清醒，沒有被 AI 一本正經的胡說八道騙倒！</p>
+                
+                <div class="bg-black/25 p-5 sm:p-6 rounded-xl text-left text-sm sm:text-base border-l-4 border-emerald-300 mb-8 shadow-inner">
+                    <p class="font-bold text-yellow-200 mb-2 text-base sm:text-lg">💡 陷阱真相解析：</p>
+                    <p id="pass-desc" class="leading-relaxed text-white">解析描述...</p>
+                </div>
+
+                <button id="next-level-btn" onclick="nextLevel()" class="bg-white text-emerald-700 font-black py-4 px-12 rounded-xl shadow-xl hover:bg-emerald-50 transition transform hover:scale-105 active:scale-95 text-lg w-full sm:w-auto cursor-pointer">
+                    進入下一階挑戰 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 5: 通關證書 (支援直接下載 PNG 圖檔) ================= -->
+        <section id="view-cert" class="bg-slate-900 flex-col items-center justify-center p-4 sm:p-8 flex-grow" style="display: none;">
+            
+            <!-- 證書截圖目標區塊 (#cert-card) -->
+            <div id="cert-card" class="cert-glow p-6 sm:p-10 md:p-12 max-w-3xl w-full relative overflow-hidden rounded-sm text-slate-800">
+                <!-- 裝飾雙線邊框 -->
+                <div class="absolute inset-3 border-4 border-double border-amber-500/40 pointer-events-none"></div>
+                
+                <!-- 四角裝飾花紋 -->
+                <div class="absolute top-5 left-5 w-6 h-6 border-t-4 border-l-4 border-amber-500 pointer-events-none"></div>
+                <div class="absolute top-5 right-5 w-6 h-6 border-t-4 border-r-4 border-amber-500 pointer-events-none"></div>
+                <div class="absolute bottom-5 left-5 w-6 h-6 border-b-4 border-l-4 border-amber-500 pointer-events-none"></div>
+                <div class="absolute bottom-5 right-5 w-6 h-6 border-b-4 border-r-4 border-amber-500 pointer-events-none"></div>
+
+                <div class="relative z-10 text-center">
+                    <!-- 頂部榮譽徽章 -->
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mb-4 shadow-lg border-4 border-amber-100">
+                        <svg class="w-9 h-9 sm:w-11 sm:h-11 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                        </svg>
+                    </div>
+                    
+                    <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-1 tracking-widest" style="font-family: 'Noto Sans TC', serif;">
+                        思維防禦大師認證
+                    </h1>
+                    <p class="text-amber-600 font-bold tracking-widest mb-6 text-xs sm:text-sm">
+                        CERTIFICATE OF AI COGNITIVE DEFENSE
+                    </p>
+                    
+                    <p class="text-gray-500 mb-2 text-sm sm:text-base font-medium">茲證明 思維防禦特工</p>
+                    <div class="mb-5">
+                        <div id="print-name" class="text-2xl sm:text-4xl font-black text-indigo-950 border-b-2 border-slate-800 inline-block px-8 sm:px-12 pb-2">
+                            王小明
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-700 leading-relaxed max-w-xl mx-auto mb-5 text-sm sm:text-base">
+                        於 AI 時代的「認知外包」高壓測試中，成功保持大腦清醒與主體性。具備敏銳的<strong class="text-indigo-800">批判性思考與事實查核能力</strong>，精準識破 AI 幻象，拒絕盲目照單全收！
+                    </p>
+
+                    <!-- 本次通關的 3 個隨機任務徽章 -->
+                    <div class="mb-6">
+                        <p class="text-xs font-bold text-gray-400 mb-2 tracking-wider">本次成功破除之 AI 幻象任務：</p>
+                        <div id="cert-missions" class="flex flex-wrap justify-center gap-2">
+                            <!-- 由 JS 動態填入本次通過的 3 個關卡領域 -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-end border-t border-gray-300 pt-5 mt-4 max-w-lg mx-auto">
+                        <div class="text-center">
+                            <p class="text-slate-800 font-black text-base sm:text-lg">AI 素養防衛總部</p>
+                            <p class="text-xs text-gray-500 mt-0.5">思維防禦認證中心</p>
+                        </div>
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 opacity-85">
+                            <!-- 專屬防偽鋼印 SVG -->
+                            <svg viewBox="0 0 100 100" class="text-amber-600/70 fill-current">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="4 3"/>
+                                <circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                                <text x="50" y="46" font-size="11" text-anchor="middle" font-weight="900">AI DETECTIVE</text>
+                                <text x="50" y="61" font-size="10" text-anchor="middle" font-weight="bold">認證合格</text>
+                            </svg>
+                        </div>
+                        <div class="text-center">
+                            <p id="cert-date" class="text-slate-800 font-bold text-sm sm:text-base"></p>
+                            <p class="text-xs text-gray-500 mt-0.5">授證日期</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下載狀態提示訊息 -->
+            <p id="download-status" class="no-print text-amber-300 text-sm font-bold mt-4 hidden animate-pulse">
+                ✨ 正在為你產生高畫質證書圖檔，請稍候...
+            </p>
+
+            <!-- 證書操作按鈕列 -->
+            <div class="no-print mt-6 flex flex-col sm:flex-row gap-3 w-full max-w-xl justify-center">
+                <button id="btn-download-img" onclick="downloadCertificateImage()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3.5 px-8 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer text-base">
+                    <span>📥</span>
+                    <span>直接下載認證證書圖檔 (PNG)</span>
+                </button>
+                <button onclick="preparePrint()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3.5 px-6 rounded-xl shadow transition cursor-pointer text-sm sm:text-base">
+                    🖨️ 列印 / 存為 PDF
+                </button>
+                <button onclick="playAgainRandom()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-6 rounded-xl shadow transition cursor-pointer text-sm sm:text-base">
+                    🎲 重新抽題再玩一次
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        /* ================= Web Audio API 音效合成器 (不依賴外部音檔，100% 穩定發聲) ================= */
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon').innerText = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('sound-text').innerText = soundEnabled ? '音效開啟' : '音效靜音';
+        }
+
+        // 播放合成音效：'tick' (倒數滴答), 'alarm' (失敗警報), 'success' (過關), 'cert' (頒發證書號角)
+        function playSoundEffect(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                if (type === 'tick') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.09);
+                } else if (type === 'alarm') {
+                    // 雙音低沉警報
+                    [0, 0.18].forEach(offset => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(220, now + offset);
+                        osc.frequency.linearRampToValueAtTime(140, now + offset + 0.15);
+                        gain.gain.setValueAtTime(0.2, now + offset);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.16);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + offset);
+                        osc.stop(now + offset + 0.17);
+                    });
+                } else if (type === 'success') {
+                    // 清脆上揚雙音
+                    const notes = [523.25, 659.25, 783.99];
+                    notes.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.09);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.09);
+                        osc.stop(now + idx * 0.09 + 0.26);
+                    });
+                } else if (type === 'cert') {
+                    // 勝利和弦號角
+                    const chord = [523.25, 659.25, 783.99, 1046.5];
+                    chord.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        gain.gain.setValueAtTime(0.18, now + idx * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.6);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.1);
+                        osc.stop(now + idx * 0.1 + 0.65);
+                    });
+                }
+            } catch (e) {
+                // 忽略瀏覽器自動播放限制錯誤
+            }
+        }
+
+        /* ================= 學生版 6 大生活情境題庫 (每次隨機 6 選 3) ================= */
+        const optionClass = "trap-option bg-yellow-200 cursor-pointer rounded px-1.5 py-0.5 border-2 border-transparent hover:bg-yellow-300 transition-all duration-200 inline";
+
+        const allLevelsPool = [
+            {
+                id: "clean",
+                badge: "🧪 居家生活安全",
+                subject: "【居家生活】",
+                title: "大掃除賺零用錢：浴室霉斑終極清潔法",
+                confidence: "98%",
+                accordions: [
+                    {
+                        title: "1. 任務目標與準備工具",
+                        content: "為了在爸媽回家前把浴室刷乾淨賺取零用錢，這是一套最快消除陳年霉斑與馬桶水垢的清潔攻略。請準備好刷子、抹布與清潔劑。"
+                    },
+                    {
+                        title: "2. AI 超級去污步驟 (預計耗時 15 分鐘)",
+                        content: `想要一次搞定黑霉斑跟馬桶黃垢，請跟著以下高效率步驟操作：<ul class='list-disc pl-5 mt-2 space-y-3 text-gray-700'>
+                            <li>步驟一：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>戴上塑膠手套與口罩，保護雙手皮膚與呼吸道。</span></li>
+                            <li>步驟二：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>先用蓮蓬頭將浴室牆面與地板淋濕，軟化表面污垢。</span></li>
+                            <li>步驟三：<span class='${optionClass}' data-is-trap='true' onclick='selectOption(this)'>將含氯漂白水與強效鹽酸馬桶清潔劑以 1:1 倒入水桶混合，並緊閉浴室門窗悶住氣味以加強除霉效果。</span></li>
+                            <li>步驟四：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>靜置十分鐘後，用刷子輕輕刷洗並以大量清水沖淨。</span></li></ul>`
+                    },
+                    {
+                        title: "3. 驗收成果",
+                        content: "將水滴擦乾，迎接煥然一新、亮晶晶的浴室！"
+                    }
+                ],
+                trapDesc: "AI 把兩種強效清潔劑隨意組合了！<strong class='text-yellow-300 underline'>含氯漂白水加上鹽酸清潔劑會發生劇烈化學反應，瞬間產生大量劇毒的「氯氣（Cl₂）」</strong>！在緊閉門窗的浴室裡吸入氯氣，會嚴重灼傷呼吸道，甚至導致中毒昏迷！"
+            },
+            {
+                id: "microwave",
+                badge: "🍳 料理家電安全",
+                subject: "【料理危機】",
+                title: "週末獨自在家：微波爐 3 分鐘懶人點心",
+                confidence: "97%",
+                accordions: [
+                    {
+                        title: "1. 食譜簡介：爆漿水煮蛋與熱可可",
+                        content: "下午肚子餓又不想開瓦斯爐？只要利用家裡的微波爐，就能在 3 分鐘內做出營養滿分的溫泉水煮蛋配熱可可！"
+                    },
+                    {
+                        title: "2. 快速製作步驟",
+                        content: `請依照以下步驟操作微波爐：<ul class='list-decimal pl-5 mt-2 space-y-3 text-gray-700'>
+                            <li>沖泡可可：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>拿出一個微波爐專用的陶瓷馬克杯，倒入半杯牛奶與可可粉攪拌均勻。</span></li>
+                            <li>加熱雞蛋：<span class='${optionClass}' data-is-trap='true' onclick='selectOption(this)'>取一顆完整的帶殼生雞蛋洗淨，直接放入裝滿水的碗中，並用鋁箔紙將碗口緊密包覆以鎖住熱能，放進微波爐大火加熱 3 分鐘。</span></li>
+                            <li>安全取出：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>加熱完成後，戴上隔熱手套將碗與馬克杯小心取出。</span></li></ul>`
+                    },
+                    {
+                        title: "3. 美味享用",
+                        content: `<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>撒上一點黑胡椒或鹽巴，即可享用熱騰騰的下午茶點心！</span>`
+                    }
+                ],
+                trapDesc: "這會引發廚房大災難！第一，<strong class='text-yellow-300 underline'>完整的帶殼雞蛋</strong>放進微波爐加熱，內部水氣與壓力無法宣洩，會直接<strong class='text-yellow-300 underline'>劇烈爆炸</strong>；第二，<strong class='text-yellow-300 underline'>鋁箔紙屬於金屬</strong>，放進微波爐會產生電弧火花，極易引發火災！"
+            },
+            {
+                id: "nosebleed",
+                badge: "🩹 校園健康急救",
+                subject: "【健康急救】",
+                title: "體育課突發狀況：籃球場上的流鼻血急救",
+                confidence: "95%",
+                accordions: [
+                    {
+                        title: "1. 狀況評估",
+                        content: "體育課打籃球時，同學不小心被球砸到鼻子，當場流鼻血了！在陪他走到健康中心前，請先幫他進行初步止血處理。"
+                    },
+                    {
+                        title: "2. AI 黃金止血 SOP",
+                        content: `請保持冷靜，立刻協助同學完成以下動作：<ul class='list-decimal pl-5 mt-2 space-y-3 text-gray-700'>
+                            <li>安撫休息：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>先讓同學到樹蔭下或走廊的椅子上坐下休息，安撫他的緊張情緒。</span></li>
+                            <li>姿勢調整：<span class='${optionClass}' data-is-trap='true' onclick='selectOption(this)'>請同學立刻將頭往後仰到最高，避免鼻血流出來弄髒衣服，並大力拍打他的後頸與額頭來幫助血管收縮。</span></li>
+                            <li>加壓止血：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>用手指捏住鼻翼兩側柔軟的地方（鼻骨下方），並請同學先用嘴巴呼吸。</span></li></ul>`
+                    },
+                    {
+                        title: "3. 後續處理",
+                        content: `<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>在鼻樑上方敷上冰袋幫助血管收縮，若 10 分鐘後仍未止血，請健康中心護理師協助就醫。</span>`
+                    }
+                ],
+                trapDesc: "AI 給了超危險的過時偏方！流鼻血時若<strong class='text-yellow-300 underline'>「把頭往後仰」</strong>，鼻血不會止住，反而會順著鼻腔<strong class='text-yellow-300 underline'>倒流進喉嚨、氣管甚至胃部，引起劇烈嗆咳、嘔吐甚至堵塞呼吸道窒息</strong>！正確做法是身體微向前傾（低頭）捏住鼻翼才對。"
+            },
+            {
+                id: "social",
+                badge: "📱 社群人際與法律",
+                subject: "【社群人際】",
+                title: "分組報告危機：神隱組員的「高效率」催交術",
+                confidence: "99%",
+                accordions: [
+                    {
+                        title: "1. 溝通目標",
+                        content: "明天就要上台報告了，但負責找資料的組員小華卻一直已讀不回！為了展現組長的領導力並讓他負起責任，AI 為你量身打造了這套催交策略。"
+                    },
+                    {
+                        title: "2. 三階段催交行動方案",
+                        content: `請依照以下步驟，循序漸進地解決問題：<ul class='list-decimal pl-5 mt-2 space-y-3 text-gray-700'>
+                            <li>行動一：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>先在小組的 LINE 群組裡標註小華，詢問他是不是遇到什麼困難需要幫忙。</span></li>
+                            <li>行動二：<span class='${optionClass}' data-is-trap='true' onclick='selectOption(this)'>為了激發他的羞恥心，拍下小華上課睡覺的醜照，壓上「全校最雷神隱王」的字樣發到 IG 限動與 Threads 上公開標註他，號召全班同學一起去留言洗版催他交作業。</span></li>
+                            <li>行動三：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>先與其他組員分工把缺漏的部分補齊，確保明天的報告能順利進行。</span></li></ul>`
+                    },
+                    {
+                        title: "3. 事後檢討",
+                        content: `<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>報告結束後，私下向老師說明這次的分工狀況與對話紀錄，請老師協助處理。</span>`
+                    }
+                ],
+                trapDesc: "AI 缺乏人際同理心與法律常識！未經同意偷拍同學醜照並發到社群網路號召公審，已經從催交作業變成了嚴重的<strong class='text-yellow-300 underline'>「網路霸凌」</strong>，不僅會對同學造成嚴重心理創傷，更可能觸犯<strong class='text-yellow-300 underline'>個人資料保護法、肖像權與刑法公然侮辱、誹謗罪</strong>！"
+            },
+            {
+                id: "history",
+                badge: "📚 學業事實查核",
+                subject: "【學業查核】",
+                title: "死線前 5 分鐘：臺灣歷史人物心得報告",
+                confidence: "99%",
+                accordions: [
+                    {
+                        title: "1. 報告主題：鄭成功與荷蘭人的決戰",
+                        content: "這是一篇文筆流暢、保證讓社會老師驚豔的歷史報告草稿，完美結合了歷史事件與現代反思："
+                    },
+                    {
+                        title: "2. AI 生成的報告內文",
+                        content: `<div class='space-y-3 text-gray-700 leading-relaxed'>
+                            <p>西元 1661 年，<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>鄭成功親自率領大軍從金門出發，橫渡黑水溝（臺灣海峽），準備驅逐當時佔領臺灣的荷蘭東印度公司。</span></p>
+                            <p>當時鹿耳門港道水淺，荷蘭人以為大船進不來，沒想到<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>鄭成功趁著漲潮的時機，順利帶領船隊駛入臺江內海，打了荷蘭人一個措手不及。</span></p>
+                            <p>最令人佩服的是，<span class='${optionClass}' data-is-trap='true' onclick='selectOption(this)'>鄭成功為了加快行軍速度，立即下令士兵搭乘臺灣高鐵南下包圍熱蘭遮城，並透過手機 LINE 群組與在地原住民即時連線更新荷軍座標，展現了卓越的科技戰術！</span></p>
+                        </div>`
+                    },
+                    {
+                        title: "3. 心得結語",
+                        content: `<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>經過長達九個月的圍城，荷蘭人終於投降，這段歷史深刻影響了臺灣後來的發展。</span>`
+                    }
+                ],
+                trapDesc: "抓到了！這就是最典型的<strong class='text-yellow-300 underline'>「AI 幻象（一本正經地胡說八道）」</strong>！西元 1661 年是十七世紀，當時根本沒有<strong class='text-yellow-300 underline'>臺灣高鐵</strong>，更不可能有<strong class='text-yellow-300 underline'>智慧型手機與 LINE 群組</strong>！如果不看內容直接複製交給老師，全班都會笑翻天！"
+            },
+            {
+                id: "scam",
+                badge: "🎮 遊戲資安防詐",
+                subject: "【資安防詐】",
+                title: "遊戲攻略大解密：免費領取限量傳說造型",
+                confidence: "96%",
+                accordions: [
+                    {
+                        title: "1. 攻略背景",
+                        content: "想要獲得最新推出的限量傳說級英雄造型，又不想花零用錢儲值嗎？AI 幫你整理了網路論壇上流傳的「隱藏版免費領取密技」！"
+                    },
+                    {
+                        title: "2. 免費領取步驟教學",
+                        content: `只要完成以下幾個簡單步驟，造型就會直接發送到你的遊戲信箱：<ul class='list-decimal pl-5 mt-2 space-y-3 text-gray-700'>
+                            <li>複製編號：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>打開遊戲主畫面，點選右上角的「個人檔案」，複製自己的遊戲角色 ID。</span></li>
+                            <li>關注官方：<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>到遊戲官方粉絲團查看是否有正在舉辦的合法抽獎或節日簽到活動。</span></li>
+                            <li>身分驗證：<span class='${optionClass}' data-is-trap='true' onclick='selectOption(this)'>點開網友私訊提供的「免費外掛福利網」，輸入你的遊戲帳號密碼，並偷拿爸媽皮夾裡的信用卡輸入卡號與手機簡訊收到的 OTP 驗證碼，以完成「真人防機器人身分驗證」。</span></li></ul>`
+                    },
+                    {
+                        title: "3. 注意事項",
+                        content: `<span class='${optionClass}' data-is-trap='false' onclick='selectOption(this)'>領取造型後，別忘了開啟遊戲的「雙重驗證」功能，保護自己的帳號安全喔！</span>`
+                    }
+                ],
+                trapDesc: "這是典型的<strong class='text-yellow-300 underline'>「網路釣魚與盜刷詐騙」</strong>！任何要求你輸入「遊戲密碼」甚至<strong class='text-yellow-300 underline'>「爸媽的信用卡號與手機 OTP 驗證碼」</strong>來做身分驗證的網站，百分之百是詐騙集團！一旦照著做，不僅帳號會被盜走，爸媽的信用卡更會被瞬間盜刷好幾萬元！"
+            }
+        ];
+
+        /* ================= 遊戲狀態管理 ================= */
+        let activeLevels = []; // 存放每次隨機抽出的 3 個關卡
+        let currentLevel = 0;
+        let timerInterval = null;
+        let timeLeft = 30;
+        let isGameActive = false;
+        let globalPlayerName = "";
+        let currentSelectedOption = null;
+
+        // Fisher-Yates 洗牌演算法：每次從 6 題中隨機抽出不重複的 3 題
+        function pickRandomThreeLevels() {
+            const copy = [...allLevelsPool];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy.slice(0, 3);
+        }
+
+        // 切換畫面視圖
+        function switchView(viewId) {
+            const views = ['view-intro', 'view-task', 'view-fail', 'view-pass', 'view-cert'];
+            views.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            const targetEl = document.getElementById(viewId);
+            if (targetEl) targetEl.style.display = 'flex';
+        }
+
+        function hideNameError() {
+            const errEl = document.getElementById('name-error-msg');
+            const inputEl = document.getElementById('player-name');
+            if (errEl) errEl.classList.add('hidden');
+            if (inputEl) inputEl.classList.remove('border-red-500');
+        }
+
+        /* ================= 遊戲流程控制 ================= */
+        function startGame() {
+            const inputEl = document.getElementById('player-name');
+            const nameInput = inputEl.value.trim();
+            
+            // 不使用 alert()，改用內嵌動態提示與震動效果
+            if (!nameInput) {
+                const errEl = document.getElementById('name-error-msg');
+                errEl.classList.remove('hidden');
+                inputEl.classList.add('border-red-500');
+                inputEl.focus();
+                
+                document.body.classList.remove('shake-animation');
+                void document.body.offsetWidth;
+                document.body.classList.add('shake-animation');
+                playSoundEffect('alarm');
+                return;
+            }
+
+            globalPlayerName = nameInput;
+            // 執行隨機 6 選 3
+            activeLevels = pickRandomThreeLevels();
+            currentLevel = 0;
+            loadLevel();
+        }
+
+        // 同一個玩家直接重新隨機抽 3 題再玩一次
+        function playAgainRandom() {
+            activeLevels = pickRandomThreeLevels();
+            currentLevel = 0;
+            loadLevel();
+        }
+
+        // 處理黃色反白選項點擊
+        function selectOption(el) {
+            if (!isGameActive) return;
+            
+            document.querySelectorAll('.trap-option').forEach(opt => {
+                opt.classList.remove('ring-4', 'ring-indigo-500', 'bg-yellow-400', 'font-bold', 'shadow-md');
+                opt.classList.add('border-transparent', 'bg-yellow-200');
+            });
+            
+            el.classList.remove('border-transparent', 'bg-yellow-200');
+            el.classList.add('ring-4', 'ring-indigo-500', 'bg-yellow-400', 'font-bold', 'shadow-md');
+            
+            currentSelectedOption = el;
+            playSoundEffect('tick');
+        }
+
+        // 載入當前關卡內容
+        function loadLevel() {
+            document.body.style.backgroundColor = '#f3f4f6';
+            currentSelectedOption = null;
+            
+            switchView('view-task');
+            const data = activeLevels[currentLevel];
+            
+            // 更新頂部關卡指示器與 AI 信心指數
+            document.getElementById('level-indicator').innerText = `隨機挑戰 ${currentLevel + 1} / 3`;
+            document.getElementById('ai-confidence').innerText = data.confidence;
+            
+            // 更新進度燈號
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i <= currentLevel) {
+                    dot.className = "w-3.5 h-3.5 rounded-full bg-emerald-400";
+                } else if (i === currentLevel + 1) {
+                    dot.className = "w-3.5 h-3.5 rounded-full bg-yellow-400 animate-pulse";
+                } else {
+                    dot.className = "w-3.5 h-3.5 rounded-full bg-gray-500";
+                }
+            }
+
+            // 渲染題目手風琴卡片
+            let htmlContent = `
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs sm:text-sm font-black text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full tracking-wider">${data.subject}</span>
+                    <span class="text-xs text-gray-500 font-medium">（題庫隨機抽選）</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 border-b-2 border-indigo-200 pb-3 mb-5">${data.title}</h2>
+            `;
+            
+            data.accordions.forEach((acc, index) => {
+                htmlContent += `
+                <div class="mb-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-3.5 sm:p-4 bg-indigo-50/80 font-bold text-indigo-950 flex items-center border-b border-gray-100 text-sm sm:text-base">
+                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-xs mr-3 shadow-inner flex-shrink-0">${index + 1}</span> 
+                        ${acc.title}
+                    </div>
+                    <div class="p-4 sm:p-5 text-gray-700 text-sm sm:text-base leading-relaxed bg-white">${acc.content}</div>
+                </div>`;
+            });
+
+            const contentArea = document.getElementById('dynamic-content-area');
+            contentArea.innerHTML = htmlContent;
+            contentArea.scrollTop = 0;
+
+            // 啟動 30 秒倒數計時器
+            timeLeft = 30;
+            isGameActive = true;
+            document.getElementById('timer-display').innerText = timeLeft;
+            clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-display').innerText = timeLeft;
+                if (timeLeft <= 5 && timeLeft > 0) {
+                    playSoundEffect('tick');
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (isGameActive) handleDecision('timeout');
+                }
+            }, 1000);
+        }
+
+        // 決策判定核心邏輯
+        function handleDecision(isAdopt) {
+            isGameActive = false;
+            clearInterval(timerInterval);
+            const data = activeLevels[currentLevel];
+
+            // 觸發畫面震動回饋
+            document.body.classList.remove('shake-animation');
+            void document.body.offsetWidth;
+            document.body.classList.add('shake-animation');
+
+            let isFail = false;
+            let failSubtitle = "";
+
+            if (isAdopt === 'timeout') {
+                isFail = true;
+                failSubtitle = "⏰ 時間到了！時間壓力讓你大腦當機啦！";
+            } else if (isAdopt === true) {
+                isFail = true;
+                failSubtitle = "😱 盲目照做！你剛剛直接採納了超危險的 AI 建議！";
+            } else if (isAdopt === false) {
+                if (!currentSelectedOption) {
+                    isFail = true;
+                    failSubtitle = "🤔 盲目退回！你沒有先點擊黃色反白處指出 AI 哪裡出錯！";
+                } else if (currentSelectedOption.dataset.isTrap === 'false') {
+                    isFail = true;
+                    failSubtitle = "❌ 抓錯重點囉！你選的步驟沒問題，卻放過了真正的 AI 幻象危機！";
+                } else {
+                    isFail = false;
+                }
+            }
+
+            if (isFail) {
+                playSoundEffect('alarm');
+                document.body.style.backgroundColor = '#dc2626';
+                switchView('view-fail');
+                document.getElementById('fail-subtitle').innerText = failSubtitle;
+                document.getElementById('fail-desc').innerHTML = data.trapDesc;
+            } else {
+                playSoundEffect('success');
+                switchView('view-pass');
+                document.getElementById('pass-desc').innerHTML = data.trapDesc;
+                
+                // 更新下一關按鈕文字
+                const nextBtn = document.getElementById('next-level-btn');
+                if (currentLevel + 1 >= activeLevels.length) {
+                    nextBtn.innerText = "🎉 領取專屬思維防禦證書 ➔";
+                } else {
+                    nextBtn.innerText = `進入下一階挑戰 (${currentLevel + 2} / 3) ➔`;
+                }
+            }
+        }
+
+        function retryLevel() {
+            loadLevel();
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            if (currentLevel >= activeLevels.length) {
+                playSoundEffect('cert');
+                showCertificate();
+            } else {
+                loadLevel();
+            }
+        }
+
+        // 顯示通關證書
+        function showCertificate() {
+            document.body.style.backgroundColor = '#0f172a';
+            switchView('view-cert');
+            
+            document.getElementById('print-name').innerText = globalPlayerName;
+            
+            // 填入本次隨機闖關成功的 3 個任務標籤
+            const missionsContainer = document.getElementById('cert-missions');
+            missionsContainer.innerHTML = activeLevels.map(lvl => 
+                `<span class="px-3 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-full text-xs font-bold shadow-sm">✓ ${lvl.badge}</span>`
+            ).join('');
+
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+            document.getElementById('cert-date').innerText = dateStr;
+        }
+
+        // 將證書區塊直接轉成高解析度 PNG 圖檔並觸發下載
+        async function downloadCertificateImage() {
+            const certElement = document.getElementById('cert-card');
+            const statusText = document.getElementById('download-status');
+            const downloadBtn = document.getElementById('btn-download-img');
+
+            try {
+                statusText.classList.remove('hidden');
+                downloadBtn.disabled = true;
+                downloadBtn.classList.add('opacity-70');
+
+                // 使用 html2canvas 擷取 #cert-card 產生高清圖檔
+                const canvas = await html2canvas(certElement, {
+                    scale: 2, // 2倍高解析度
+                    backgroundColor: '#fffdf9',
+                    useCORS: true,
+                    logging: false
+                });
+
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                const safeName = (globalPlayerName || '特工').replace(/[\\/:*?"<>|]/g, '_');
+                link.download = `AI思維防禦大師認證_${safeName}.png`;
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                statusText.innerText = "✅ 證書圖檔已成功下載！";
+                setTimeout(() => {
+                    statusText.classList.add('hidden');
+                    statusText.innerText = "✨ 正在為你產生高畫質證書圖檔，請稍候...";
+                }, 3000);
+            } catch (err) {
+                statusText.innerText = "⚠️ 圖檔產生失敗，請點擊旁邊的「列印 / 存為 PDF」按鈕保存。";
+            } finally {
+                downloadBtn.disabled = false;
+                downloadBtn.classList.remove('opacity-70');
+            }
+        }
+
+        function preparePrint() {
+            window.print();
+        }
+
+        function resetGame() {
+            clearInterval(timerInterval);
+            document.body.classList.remove('shake-animation');
+            document.body.style.backgroundColor = '#f3f4f6';
+            switchView('view-intro');
+        }
+    </script>
+</body>
+</html>
